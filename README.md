@@ -1,3 +1,3 @@
 ## Spotify Discogs Search
 
-#### Find your Spotify favorites on vinyl
+### Find your Spotify favorites on vinyl
