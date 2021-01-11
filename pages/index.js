@@ -3,7 +3,7 @@ import classes from '../styles/Home.module.css';
 import axios from 'axios';
 
 export default function Home() {
-  const redirectURI = encodeURI('http://localhost:3000/');
+  const redirectURI = encodeURI(process.env.NEXT_PUBLIC_REDIRECT_URL);
 
   return (
     <div className={classes.container}>
