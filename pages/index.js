@@ -1,42 +1,65 @@
 import React from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
+import { useCookies } from 'react-cookie';
+
 import classes from '../styles/Home.module.css';
-import axios from 'axios';
-import { createFactory } from 'react';
 
 export default function Home() {
   const [accessToken, setAccessToken] = React.useState();
+  const [userAlbums, setUserAlbums] = React.useState();
 
   const router = useRouter();
 
-  const redirectURI = encodeURI(process.env.NEXT_PUBLIC_REDIRECT_URL);
-  const spotifyAuthorizationUrl = `https://accounts.spotify.com/authorize?client_id=${process.env.NEXT_PUBLIC_CLIENT_ID}&redirect_uri=${redirectURI}&scope=user-read-private%20user-read-email&response_type=token`;
+  const [cookies, setCookie, removeCookie] = useCookies();
 
-  // On initial load, go off and try to get authorization from Spotify
-  // If user has visited already, they'll be authenticated
-  // React.useEffect(() => {
-  //   checkSpotifyAuthorization();
-  // }, []);
-
-  // async function checkSpotifyAuthorization() {
-  //   try {
-  //     const response = await axios.get(spotifyAuthorizationUrl);
-  //     console.log(response);
-  //   } catch (error) {
-  //     console.log(error);
-  //     alert('There was an error getting Spotify authorization');
-  //   }
-  // }
-
+  // On page load, if there is an access_path in the URL, it means we just got redirected
+  // from the Spotify authorization request - set accessToken in state and cookies and
+  // clear the hash from the URL
   React.useEffect(() => {
     const path = router.asPath;
+
     if (path.includes('access_token')) {
-      const temp = path.slice(path.indexOf('=') + 1, path.indexOf('&'));
-      console.log('Setting access token to: ' + temp);
-      setAccessToken(temp);
+      // Get access_token from hash (comes after first "=")
+      const token = path.slice(path.indexOf('=') + 1, path.indexOf('&'));
+      // Get expires_in from hash (comes after last "=")
+      const maxAge = parseInt(path.slice(path.lastIndexOf('=') + 1));
+
+      // Set accessToken in state
+      setAccessToken(token);
+
+      // Set spotifyAccessToken cookie, with appropriate expiration date
+      setCookie('spotifyAccessToken', token, {
+        maxAge
+      });
+
+      // Clear has from URL
+      router.replace('/');
+    } else if (cookies.spotifyAccessToken) {
+      setAccessToken(cookies.spotifyAccessToken);
+    } else {
+      console.log('Pushing /connect to router...');
+      router.push('/connect');
     }
   }, []);
+
+  // On page load, if spotifyAccessToken cookie exists, add it to state
+  // If there is no cookie, redirect to /connect page
+  // React.useEffect(() => {
+
+  //   if (cookies.spotifyAccessToken) {
+  //     setAccessToken(cookies.spotifyAccessToken);
+  //   } else {
+
+  //   }
+  // }, []);
+
+  // If there is an accessToken but no user data, get user data
+  React.useEffect(() => {
+    if (accessToken && !userAlbums) {
+      console.log('No user albums, going to fill them in now...');
+    }
+  }, [accessToken]);
 
   return (
     <div className={classes.container}>
@@ -46,9 +69,7 @@ export default function Home() {
       </Head>
 
       <main className={classes.main}>
-        <h1 className={classes.title}>Welcome to Spotify Discogs Search</h1>
-        <p className={classes.description}>Find your Spotify music on vinyl</p>
-        <a href={spotifyAuthorizationUrl}>Log In With Spotify</a>
+        <h1>Hello world</h1>
       </main>
 
       <footer className={classes.footer}>
