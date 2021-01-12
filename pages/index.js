@@ -10,9 +10,12 @@ import axios from 'axios';
 export default function Home() {
   const [accessToken, setAccessToken] = React.useState();
   const [userData, setUserData] = React.useState();
+
   const [userAlbums, setUserAlbums] = React.useState();
+  const [userAlbumsSearched, setUserAlbumsSearched] = React.useState(0);
   const [matchedReleases, setMatchedReleases] = React.useState([]);
 
+  const [albumGridStart, setAlbumGridStart] = React.useState(0);
   const [gridWidth, setGridWidth] = React.useState(4);
 
   const router = useRouter();
@@ -57,6 +60,8 @@ export default function Home() {
     }
   }, [userAlbums]);
 
+  // Watch for albumGridStart+gridWidth to reach the end of the matchedReleases - then go get another
+
   const getSpotifyUserData = async () => {
     try {
       const response = await axios.get('https://api.spotify.com/v1/me', {
@@ -86,14 +91,19 @@ export default function Home() {
   };
 
   const getDiscogsReleases = async userAlbums => {
-    let tempArray = [];
-    for (let i = 0; i < gridWidth; i++) {
+    let tempArray = matchedReleases;
+
+    let i = userAlbumsSearched;
+
+    // Load the array of releases until we have enough to fill the grid - so there's one ready to scroll in
+    while (tempArray.length < albumGridStart + gridWidth + 1) {
       let res = await getDiscogsRelease(userAlbums[i].album);
       if (res) {
         tempArray = [...tempArray, res];
       }
+      i++;
     }
-
+    setUserAlbumsSearched(i);
     setMatchedReleases(tempArray);
   };
 
@@ -154,6 +164,15 @@ export default function Home() {
     }
   };
 
+  const handleAlbumGridForward = () => {
+    setAlbumGridStart(albumGridStart + 1);
+  };
+  const handleAlbumGridReverse = () => {
+    if (albumGridStart > 0) {
+      setAlbumGridStart(albumGridStart - 1);
+    }
+  };
+
   return (
     <>
       <Head>
@@ -168,11 +187,16 @@ export default function Home() {
               <h3 className={classes.releaseSection__header}>
                 Albums From Your Library
               </h3>
-              {/* <h4 className={classes.releaseSection__subhead}>
-                (From your Saved Spotify Albums)
-              </h4> */}
+              <h4>Searched {userAlbumsSearched} of your Albums</h4>
             </div>
-            <ReleaseGrid releases={matchedReleases} />
+            <ReleaseGrid
+              releases={matchedReleases.slice(
+                albumGridStart,
+                albumGridStart + gridWidth
+              )}
+              albumGridForward={() => handleAlbumGridForward()}
+              albumGridReverse={() => handleAlbumGridReverse()}
+            />
           </section>
 
           <section className={classes.releaseSection}>
