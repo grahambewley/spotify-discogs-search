@@ -13,6 +13,8 @@ export default function Home() {
   const [userAlbums, setUserAlbums] = React.useState();
   const [matchedReleases, setMatchedReleases] = React.useState([]);
 
+  const [gridWidth, setGridWidth] = React.useState(4);
+
   const router = useRouter();
 
   const [cookies, setCookie, removeCookie] = useCookies();
@@ -85,7 +87,7 @@ export default function Home() {
 
   const getDiscogsReleases = async userAlbums => {
     let tempArray = [];
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < gridWidth; i++) {
       let res = await getDiscogsRelease(userAlbums[i].album);
       if (res) {
         tempArray = [...tempArray, res];
@@ -162,8 +164,25 @@ export default function Home() {
       <div className={classes.container}>
         <main className={classes.main}>
           <section className={classes.releaseSection}>
-            <h4 className={classes.releaseSection__header}>Saved Albums</h4>
+            <div className={classes.releaseSection__headerWrapper}>
+              <h3 className={classes.releaseSection__header}>
+                Albums From Your Library
+              </h3>
+              {/* <h4 className={classes.releaseSection__subhead}>
+                (From your Saved Spotify Albums)
+              </h4> */}
+            </div>
             <ReleaseGrid releases={matchedReleases} />
+          </section>
+
+          <section className={classes.releaseSection}>
+            <div className={classes.releaseSection__headerWrapper}>
+              <h3 className={classes.releaseSection__header}>
+                Explore Your Playlists
+              </h3>
+            </div>
+
+            {/* <ReleaseGrid releases={matchedReleases} /> */}
           </section>
         </main>
 

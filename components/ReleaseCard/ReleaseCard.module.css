@@ -1,7 +1,39 @@
+.releaseLink {
+  position: relative;
+  display: block;
+}
+.releaseLinkLabel {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  padding: 1rem;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  opacity: 0;
+  transition: all 0.25s;
+  z-index: 100;
+}
 .releaseCover {
   width: 100%;
   border-radius: 2px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.25s;
+}
+.releaseLink:hover .releaseCover {
+  opacity: 0.7;
+  filter: blur(2px);
+}
+.releaseLink:hover .releaseLinkLabel {
+  opacity: 1;
+}
+
+.releaseInfo {
+  padding: 0.5rem 0 0 3px;
 }
 .releaseName {
 }

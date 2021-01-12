@@ -29,7 +29,9 @@ export default function Home() {
       <main className={classes.main}>
         <h1 className={classes.title}>Welcome to Spotify Discogs Search</h1>
         <p className={classes.description}>Find your Spotify music on vinyl</p>
-        <a href={spotifyAuthorizationUrl}>Log In With Spotify</a>
+        <a className={classes.loginButton} href={spotifyAuthorizationUrl}>
+          Log In With Spotify
+        </a>
       </main>
 
       <footer className={classes.footer}>

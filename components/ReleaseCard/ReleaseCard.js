@@ -5,12 +5,22 @@ import Link from 'next/link';
 const ReleaseCard = ({ release }) => {
   return (
     <div className={classes.container}>
-      <a href={release.releaseUrl} rel="noopener noreferrer" target="_blank">
+      <a
+        className={classes.releaseLink}
+        href={release.releaseUrl}
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        <span className={classes.releaseLinkLabel}>
+          View Release on Discogs
+        </span>
         <img className={classes.releaseCover} src={release.spotifyImageUrl} />
       </a>
 
-      <h3 className={classes.releaseName}>{release.spotifyAlbumName}</h3>
-      <h4 className={classes.releaseArtist}>{release.spotifyArtist}</h4>
+      <div className={classes.releaseInfo}>
+        <h3 className={classes.releaseName}>{release.spotifyAlbumName}</h3>
+        <h4 className={classes.releaseArtist}>{release.spotifyArtist}</h4>
+      </div>
     </div>
   );
 };

@@ -4,6 +4,12 @@
   max-width: 1100px;
   margin: 0 auto;
 }
+@media (max-width: 980px) {
+  .container {
+    width: 100%;
+    padding: 0 2rem;
+  }
+}
 
 .main {
   padding: 5rem 0;
@@ -33,11 +39,23 @@
   font-size: 1.5rem;
 }
 
-.releaseSection__header {
+.releaseSection {
+  margin-bottom: 6rem;
+}
+.releaseSection__headerWrapper {
   padding-bottom: 0.5rem;
-  margin-bottom: 1rem;
-  border-bottom: 1px solid #f1f1f1;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #eee;
+}
+.releaseSection__header {
+  font-size: 1rem;
   text-transform: uppercase;
   letter-spacing: 1px;
-  font-weight: 400;
+  font-weight: 500;
+}
+.releaseSection__subhead {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 100;
 }
