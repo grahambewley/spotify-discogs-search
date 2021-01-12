@@ -61,6 +61,25 @@ export default function Home() {
   }, [userAlbums]);
 
   // Watch for albumGridStart+gridWidth to reach the end of the matchedReleases - then go get another
+  React.useEffect(() => {
+    // We have to have userAlbums already for any of this to matter...
+    if (userAlbums) {
+      console.log(
+        'Currently showing matches ' +
+          albumGridStart +
+          ' through ' +
+          (albumGridStart + gridWidth)
+      );
+      console.log(
+        '...and we have ' + matchedReleases.length + ' matchedReleases'
+      );
+
+      if (matchedReleases.length < albumGridStart + gridWidth + 2) {
+        console.log('Time to get another release...');
+        getDiscogsReleases(userAlbums);
+      }
+    }
+  }, [albumGridStart]);
 
   const getSpotifyUserData = async () => {
     try {
@@ -95,8 +114,9 @@ export default function Home() {
 
     let i = userAlbumsSearched;
 
-    // Load the array of releases until we have enough to fill the grid - so there's one ready to scroll in
-    while (tempArray.length < albumGridStart + gridWidth + 1) {
+    console.log('Searching spotify albums starting at index ' + i);
+    // Load the array of releases until we have enough to fill the grid - plus a couple extras they're ready to scroll in
+    while (tempArray.length < albumGridStart + gridWidth + 2) {
       let res = await getDiscogsRelease(userAlbums[i].album);
       if (res) {
         tempArray = [...tempArray, res];
@@ -155,8 +175,6 @@ export default function Home() {
         };
 
         return match;
-      } else {
-        console.log("Couldn't find discogs release for " + album.name);
       }
     } catch (error) {
       console.log(error);
