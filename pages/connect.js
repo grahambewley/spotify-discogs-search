@@ -10,7 +10,7 @@ export default function Home() {
   const router = useRouter();
 
   const redirectURI = encodeURI(process.env.NEXT_PUBLIC_REDIRECT_URL);
-  const spotifyAuthorizationUrl = `https://accounts.spotify.com/authorize?client_id=${process.env.NEXT_PUBLIC_CLIENT_ID}&redirect_uri=${redirectURI}&scope=user-read-private%20user-read-email&response_type=token`;
+  const spotifyAuthorizationUrl = `https://accounts.spotify.com/authorize?client_id=${process.env.NEXT_PUBLIC_CLIENT_ID}&redirect_uri=${redirectURI}&scope=user-read-private%20user-library-read&response_type=token`;
 
   // Check cookies for spotifyAccessToken - if it exists, redirect to index page
   React.useEffect(() => {

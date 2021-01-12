@@ -9,6 +9,7 @@ import axios from 'axios';
 export default function Home() {
   const [accessToken, setAccessToken] = React.useState();
   const [userData, setUserData] = React.useState();
+  const [userAlbums, setUserAlbums] = React.useState();
 
   const router = useRouter();
 
@@ -49,6 +50,7 @@ export default function Home() {
     if (accessToken && !userData) {
       console.log('No user data, getting that now...');
       getSpotifyUserData();
+      getSpotifyUserAlbums();
     }
   }, [accessToken]);
 
@@ -59,11 +61,25 @@ export default function Home() {
           Authorization: `Bearer ${accessToken}`
         }
       });
-      console.log(response);
       setUserData(response.data);
     } catch (error) {
       console.log(error);
       alert('Error getting Spotify user data');
+    }
+  };
+
+  const getSpotifyUserAlbums = async () => {
+    try {
+      const response = await axios.get('https://api.spotify.com/v1/me/albums', {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        }
+      });
+      console.log(response);
+      setUserAlbums(response.data);
+    } catch (error) {
+      console.log(error);
+      alert('Error getting Spotify albums for user');
     }
   };
 
