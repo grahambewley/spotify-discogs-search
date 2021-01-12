@@ -3,6 +3,7 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useCookies } from 'react-cookie';
 import Header from '../components/Header/Header';
+import ReleaseGrid from '../components/ReleaseGrid/ReleaseGrid';
 import classes from '../styles/Home.module.css';
 import axios from 'axios';
 
@@ -10,7 +11,7 @@ export default function Home() {
   const [accessToken, setAccessToken] = React.useState();
   const [userData, setUserData] = React.useState();
   const [userAlbums, setUserAlbums] = React.useState();
-
+  const [matchedReleases, setMatchedReleases] = React.useState([]);
   const router = useRouter();
 
   const [cookies, setCookie, removeCookie] = useCookies();
@@ -22,25 +23,18 @@ export default function Home() {
     const path = router.asPath;
 
     if (path.includes('access_token')) {
-      // Get access_token from hash (comes after first "=")
       const token = path.slice(path.indexOf('=') + 1, path.indexOf('&'));
-      // Get expires_in from hash (comes after last "=")
       const maxAge = parseInt(path.slice(path.lastIndexOf('=') + 1));
 
-      // Set accessToken in state
       setAccessToken(token);
-
-      // Set spotifyAccessToken cookie, with appropriate expiration date
       setCookie('spotifyAccessToken', token, {
         maxAge
       });
 
-      // Clear has from URL
       router.replace('/');
     } else if (cookies.spotifyAccessToken) {
       setAccessToken(cookies.spotifyAccessToken);
     } else {
-      console.log('Pushing /connect to router...');
       router.push('/connect');
     }
   }, []);
@@ -48,7 +42,6 @@ export default function Home() {
   // If there is an accessToken but no user data, get user data
   React.useEffect(() => {
     if (accessToken && !userData) {
-      console.log('No user data, getting that now...');
       getSpotifyUserData();
       getSpotifyUserAlbums();
     }
@@ -57,7 +50,7 @@ export default function Home() {
   // Watch for userAlbums to be set/changed - get Discogs releases
   React.useEffect(() => {
     if (userAlbums) {
-      getDiscogsReleases();
+      getDiscogsReleases(userAlbums);
     }
   }, [userAlbums]);
 
@@ -82,8 +75,6 @@ export default function Home() {
           Authorization: `Bearer ${accessToken}`
         }
       });
-      console.log("Got user's Spotify albums: ");
-      console.log(response);
       setUserAlbums(response.data.items);
     } catch (error) {
       console.log(error);
@@ -91,19 +82,66 @@ export default function Home() {
     }
   };
 
-  const getDiscogsReleases = async () => {
+  const getDiscogsReleases = async userAlbums => {
+    let tempArray = [];
+    for (let i = 0; i < 6; i++) {
+      let res = await getDiscogsRelease(userAlbums[i].album);
+      if (res) {
+        tempArray = [...tempArray, res];
+      }
+    }
+
+    setMatchedReleases(tempArray);
+  };
+
+  const getDiscogsRelease = async album => {
+    let params = {
+      q: album.name,
+      type: 'release',
+      format: 'Vinyl'
+    };
+
+    if (album.artists[0].name.toLowerCase() != 'various artists') {
+      params.q = album.name + ' ' + album.artists[0].name;
+    }
+
     try {
       const response = await axios.get(
-        `https://api.discogs.com/database/search?q=${userAlbums[0].album.name}`,
+        'https://api.discogs.com/database/search',
         {
           headers: {
             Authorization: `Discogs key=${process.env.NEXT_PUBLIC_DISCOGS_KEY}, secret=${process.env.NEXT_PUBLIC_DISCOGS_SECRET}`
-          }
+          },
+          params
         }
       );
 
-      console.log('Discogs search result: ');
-      console.log(response);
+      //If we get back one or more results from Discogs search, add the first (most relevant) one to matchedReleases
+      if (response.data.results.length > 0) {
+        const topResult = response.data.results[0];
+
+        let artistList = album.artists[0].name;
+
+        // If the Spotify release has multiple artists - stick them together in one string
+        if (album.artists.length > 1) {
+          let artistList = '';
+          album.artists.forEach(artist => {
+            artistList = artistList + artist + ', ';
+          });
+          artistList = artistList.slice(0, -2);
+        }
+
+        const match = {
+          spotifyAlbumName: album.name,
+          spotifyArtist: artistList,
+          spotifyImageUrl: album.images[0].url,
+          releaseCountry: topResult.country,
+          releaseYear: topResult.year,
+          releaseUrl: 'https://www.discogs.com' + topResult.uri
+        };
+
+        return match;
+      }
     } catch (error) {
       console.log(error);
       alert('Error searching Discogs for releases');
@@ -112,15 +150,17 @@ export default function Home() {
 
   return (
     <>
+      <Head>
+        <title>Spotify Discogs Search</title>
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
       <Header userData={userData} />
       <div className={classes.container}>
-        <Head>
-          <title>Spotify Discogs Search</title>
-          <link rel="icon" href="/favicon.ico" />
-        </Head>
-
         <main className={classes.main}>
-          <h1>Hello world</h1>
+          <section className={classes.releaseSection}>
+            <h4 className={classes.releaseSection__header}>Saved Albums</h4>
+            <ReleaseGrid releases={matchedReleases} />
+          </section>
         </main>
 
         <footer className={classes.footer}>
