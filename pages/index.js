@@ -12,6 +12,7 @@ export default function Home() {
   const [userData, setUserData] = React.useState();
   const [userAlbums, setUserAlbums] = React.useState();
   const [matchedReleases, setMatchedReleases] = React.useState([]);
+
   const router = useRouter();
 
   const [cookies, setCookie, removeCookie] = useCookies();
@@ -84,7 +85,7 @@ export default function Home() {
 
   const getDiscogsReleases = async userAlbums => {
     let tempArray = [];
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 8; i++) {
       let res = await getDiscogsRelease(userAlbums[i].album);
       if (res) {
         tempArray = [...tempArray, res];
@@ -101,6 +102,7 @@ export default function Home() {
       format: 'Vinyl'
     };
 
+    // If album isn't by "various artists", add the artist's name to the query
     if (album.artists[0].name.toLowerCase() != 'various artists') {
       params.q = album.name + ' ' + album.artists[0].name;
     }
@@ -116,13 +118,12 @@ export default function Home() {
         }
       );
 
-      //If we get back one or more results from Discogs search, add the first (most relevant) one to matchedReleases
+      //If we get back one or more results from Discogs search, return the first (most relevant) one
       if (response.data.results.length > 0) {
         const topResult = response.data.results[0];
 
-        let artistList = album.artists[0].name;
-
         // If the Spotify release has multiple artists - stick them together in one string
+        let artistList = album.artists[0].name;
         if (album.artists.length > 1) {
           let artistList = '';
           album.artists.forEach(artist => {
@@ -137,10 +138,13 @@ export default function Home() {
           spotifyImageUrl: album.images[0].url,
           releaseCountry: topResult.country,
           releaseYear: topResult.year,
-          releaseUrl: 'https://www.discogs.com' + topResult.uri
+          releaseUrl: 'https://www.discogs.com' + topResult.uri,
+          releaseId: topResult.id
         };
 
         return match;
+      } else {
+        console.log("Couldn't find discogs release for " + album.name);
       }
     } catch (error) {
       console.log(error);

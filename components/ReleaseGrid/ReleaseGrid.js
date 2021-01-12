@@ -6,7 +6,7 @@ const ReleaseGrid = ({ releases }) => {
   return (
     <div className={classes.container}>
       {releases.map(release => (
-        <ReleaseCard release={release} />
+        <ReleaseCard key={release.releaseId} release={release} />
       ))}
     </div>
   );
