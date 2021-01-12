@@ -13,10 +13,10 @@ const ReleaseGrid = ({ releases, albumGridForward, albumGridReverse }) => {
           ))}
         </div>
         <button className={classes.backButton} onClick={albumGridReverse}>
-          Back
+          <span>Back</span>
         </button>
         <button className={classes.nextButton} onClick={albumGridForward}>
-          Next
+          <span>Next</span>
         </button>
       </div>
       <div className={classes.grid}>
