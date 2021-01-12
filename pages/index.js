@@ -64,18 +64,8 @@ export default function Home() {
   React.useEffect(() => {
     // We have to have userAlbums already for any of this to matter...
     if (userAlbums) {
-      console.log(
-        'Currently showing matches ' +
-          albumGridStart +
-          ' through ' +
-          (albumGridStart + gridWidth)
-      );
-      console.log(
-        '...and we have ' + matchedReleases.length + ' matchedReleases'
-      );
-
+      // Make sure we have enough releases to display - get more if necessary
       if (matchedReleases.length < albumGridStart + gridWidth + 2) {
-        console.log('Time to get another release...');
         getDiscogsReleases(userAlbums);
       }
     }
@@ -100,6 +90,9 @@ export default function Home() {
       const response = await axios.get('https://api.spotify.com/v1/me/albums', {
         headers: {
           Authorization: `Bearer ${accessToken}`
+        },
+        params: {
+          limit: 50
         }
       });
       setUserAlbums(response.data.items);
@@ -205,7 +198,6 @@ export default function Home() {
               <h3 className={classes.releaseSection__header}>
                 Albums From Your Library
               </h3>
-              <h4>Searched {userAlbumsSearched} of your Albums</h4>
             </div>
             <ReleaseGrid
               releases={matchedReleases.slice(
@@ -223,8 +215,6 @@ export default function Home() {
                 Explore Your Playlists
               </h3>
             </div>
-
-            {/* <ReleaseGrid releases={matchedReleases} /> */}
           </section>
         </main>
 

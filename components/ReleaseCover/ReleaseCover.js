@@ -1,8 +1,8 @@
 import React from 'react';
-import classes from './ReleaseCard.module.css';
+import classes from './ReleaseCover.module.css';
 import Link from 'next/link';
 
-const ReleaseCard = ({ release }) => {
+const ReleaseCover = ({ release }) => {
   return (
     <div className={classes.container}>
       <a
@@ -16,13 +16,8 @@ const ReleaseCard = ({ release }) => {
         </span>
         <img className={classes.releaseCover} src={release.spotifyImageUrl} />
       </a>
-
-      <div className={classes.releaseInfo}>
-        <h3 className={classes.releaseName}>{release.spotifyAlbumName}</h3>
-        <h4 className={classes.releaseArtist}>{release.spotifyArtist}</h4>
-      </div>
     </div>
   );
 };
 
-export default ReleaseCard;
+export default ReleaseCover;
