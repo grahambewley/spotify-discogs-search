@@ -2,12 +2,13 @@ import React from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useCookies } from 'react-cookie';
-
+import Header from '../components/Header/Header';
 import classes from '../styles/Home.module.css';
+import axios from 'axios';
 
 export default function Home() {
   const [accessToken, setAccessToken] = React.useState();
-  const [userAlbums, setUserAlbums] = React.useState();
+  const [userData, setUserData] = React.useState();
 
   const router = useRouter();
 
@@ -43,47 +44,55 @@ export default function Home() {
     }
   }, []);
 
-  // On page load, if spotifyAccessToken cookie exists, add it to state
-  // If there is no cookie, redirect to /connect page
-  // React.useEffect(() => {
-
-  //   if (cookies.spotifyAccessToken) {
-  //     setAccessToken(cookies.spotifyAccessToken);
-  //   } else {
-
-  //   }
-  // }, []);
-
   // If there is an accessToken but no user data, get user data
   React.useEffect(() => {
-    if (accessToken && !userAlbums) {
-      console.log('No user albums, going to fill them in now...');
+    if (accessToken && !userData) {
+      console.log('No user data, getting that now...');
+      getSpotifyUserData();
     }
   }, [accessToken]);
 
+  const getSpotifyUserData = async () => {
+    try {
+      const response = await axios.get('https://api.spotify.com/v1/me', {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        }
+      });
+      console.log(response);
+      setUserData(response.data);
+    } catch (error) {
+      console.log(error);
+      alert('Error getting Spotify user data');
+    }
+  };
+
   return (
-    <div className={classes.container}>
-      <Head>
-        <title>Spotify Discogs Search</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+    <>
+      <Header userData={userData} />
+      <div className={classes.container}>
+        <Head>
+          <title>Spotify Discogs Search</title>
+          <link rel="icon" href="/favicon.ico" />
+        </Head>
 
-      <main className={classes.main}>
-        <h1>Hello world</h1>
-      </main>
+        <main className={classes.main}>
+          <h1>Hello world</h1>
+        </main>
 
-      <footer className={classes.footer}>
-        <p>
-          Created by{' '}
-          <a
-            href="https://grahambewley.com"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            Graham Bewley
-          </a>
-        </p>
-      </footer>
-    </div>
+        <footer className={classes.footer}>
+          <p>
+            Created by{' '}
+            <a
+              href="https://grahambewley.com"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              Graham Bewley
+            </a>
+          </p>
+        </footer>
+      </div>
+    </>
   );
 }

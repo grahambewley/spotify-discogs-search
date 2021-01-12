@@ -1,0 +1,30 @@
+.container {
+  background-color: #f1f1f1;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.025);
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tempLogo {
+  margin: 0;
+}
+
+.user {
+  display: flex;
+  align-items: center;
+  height: 2.4rem;
+}
+.user__image {
+  height: 100%;
+  width: 2.4rem;
+  object-fit: cover;
+  border-radius: 50%;
+  margin-right: 0.5rem;
+  border: 1px solid #ddd;
+}
+.user__name {
+  margin: 0;
+  font-weight: 400;
+}

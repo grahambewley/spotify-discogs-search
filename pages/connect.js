@@ -2,7 +2,7 @@ import React from 'react';
 import Head from 'next/head';
 import { useCookies } from 'react-cookie';
 import { Router, useRouter } from 'next/router';
-import classes from '../styles/Home.module.css';
+import classes from '../styles/Connect.module.css';
 
 export default function Home() {
   const [cookies, setCookie, removeCookie] = useCookies();
@@ -14,13 +14,7 @@ export default function Home() {
 
   // Check cookies for spotifyAccessToken - if it exists, redirect to index page
   React.useEffect(() => {
-    console.log('Cookies!');
-    console.log(cookies);
-
     if (cookies.spotifyAccessToken) {
-      console.log(
-        'Found spotifyAccessToken in cookies, pushing / to router...'
-      );
       router.push('/');
     }
   }, []);
