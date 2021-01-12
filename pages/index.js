@@ -54,6 +54,13 @@ export default function Home() {
     }
   }, [accessToken]);
 
+  // Watch for userAlbums to be set/changed - get Discogs releases
+  React.useEffect(() => {
+    if (userAlbums) {
+      getDiscogsReleases();
+    }
+  }, [userAlbums]);
+
   const getSpotifyUserData = async () => {
     try {
       const response = await axios.get('https://api.spotify.com/v1/me', {
@@ -75,11 +82,31 @@ export default function Home() {
           Authorization: `Bearer ${accessToken}`
         }
       });
+      console.log("Got user's Spotify albums: ");
       console.log(response);
-      setUserAlbums(response.data);
+      setUserAlbums(response.data.items);
     } catch (error) {
       console.log(error);
       alert('Error getting Spotify albums for user');
+    }
+  };
+
+  const getDiscogsReleases = async () => {
+    try {
+      const response = await axios.get(
+        `https://api.discogs.com/database/search?q=${userAlbums[0].album.name}`,
+        {
+          headers: {
+            Authorization: `Discogs key=${process.env.NEXT_PUBLIC_DISCOGS_KEY}, secret=${process.env.NEXT_PUBLIC_DISCOGS_SECRET}`
+          }
+        }
+      );
+
+      console.log('Discogs search result: ');
+      console.log(response);
+    } catch (error) {
+      console.log(error);
+      alert('Error searching Discogs for releases');
     }
   };
 
