@@ -108,6 +108,11 @@ export default function Home() {
     }
 
     try {
+      console.log('using Discogs key ' + process.env.NEXT_PUBLIC_DISCOGS_KEY);
+      console.log(
+        'using Discogs secret ' + process.env.NEXT_PUBLIC_DISCOGS_SECRET
+      );
+
       const response = await axios.get(
         'https://api.discogs.com/database/search',
         {
@@ -117,6 +122,8 @@ export default function Home() {
           params
         }
       );
+
+      console.log('response to request: ', response);
 
       //If we get back one or more results from Discogs search, return the first (most relevant) one
       if (response.data.results.length > 0) {
