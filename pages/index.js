@@ -288,7 +288,7 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>FindOnVinyl</title>
+        <title>FindOnVinyl | Spotify Vinyl Records Search</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Header userData={userData} />

@@ -23,7 +23,7 @@ export default function Home() {
   return (
     <div className={classes.container}>
       <Head>
-        <title>Spotify Discogs Search</title>
+        <title>FindOnVinyl | Spotify Vinyl Records Search</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
