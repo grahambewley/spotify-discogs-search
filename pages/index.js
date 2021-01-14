@@ -6,6 +6,7 @@ import Header from '../components/Header/Header';
 import ReleaseGrid from '../components/ReleaseGrid/ReleaseGrid';
 import classes from '../styles/Home.module.css';
 import axios from 'axios';
+import Loader from 'react-loader-spinner';
 
 const SPOTIFY_ALBUM_LOAD_LIMIT = 20;
 
@@ -299,23 +300,27 @@ export default function Home() {
                 Albums From Your Library
               </h3>
             </div>
-            <ReleaseGrid
-              releases={matchedReleases.slice(
-                gridDisplayIndex,
-                gridDisplayIndex + gridDisplayCount
-              )}
-              albumGridForward={() => handleAlbumGridForward()}
-              albumGridReverse={() => handleAlbumGridReverse()}
-            />
+            {matchedReleases.length > 0 ? (
+              <ReleaseGrid
+                releases={matchedReleases.slice(
+                  gridDisplayIndex,
+                  gridDisplayIndex + gridDisplayCount
+                )}
+                albumGridForward={() => handleAlbumGridForward()}
+                albumGridReverse={() => handleAlbumGridReverse()}
+              />
+            ) : (
+              <Loader type="TailSpin" color="#999999" height={35} width={35} />
+            )}
           </section>
 
-          <section className={classes.releaseSection}>
+          {/* <section className={classes.releaseSection}>
             <div className={classes.releaseSection__headerWrapper}>
               <h3 className={classes.releaseSection__header}>
                 Explore Your Playlists
               </h3>
             </div>
-          </section>
+          </section> */}
         </main>
 
         <footer className={classes.footer}>
