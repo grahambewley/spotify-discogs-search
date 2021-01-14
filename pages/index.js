@@ -4,35 +4,24 @@ import { useRouter } from 'next/router';
 import { useCookies } from 'react-cookie';
 import Header from '../components/Header/Header';
 import ReleaseGrid from '../components/ReleaseGrid/ReleaseGrid';
+import PlaylistGrid from '../components/PlaylistGrid/PlaylistGrid';
 import classes from '../styles/Home.module.css';
 import axios from 'axios';
 import Loader from 'react-loader-spinner';
 
 const SPOTIFY_ALBUM_LOAD_LIMIT = 20;
 
-// Custom hook watching window size
-function useWindowSize() {
-  const [size, setSize] = React.useState();
-  React.useLayoutEffect(() => {
-    function updateSize() {
-      setSize(window.innerWidth);
-    }
-    window.addEventListener('resize', updateSize);
-    updateSize();
-    return () => window.removeEventListener('resize', updateSize);
-  }, []);
-  return size;
-}
-
 export default function Home() {
   const [accessToken, setAccessToken] = React.useState();
   const [userData, setUserData] = React.useState();
 
   const [userAlbums, setUserAlbums] = React.useState();
-  // This is set to true when we determine we've pulled all of a user's Spotify albums
   const [allAlbumsLoaded, setAllAlbumsLoaded] = React.useState(false);
   const [userAlbumsSearchIndex, setUserAlbumsSearchIndex] = React.useState(0);
   const [matchedReleases, setMatchedReleases] = React.useState([]);
+
+  const [userPlaylists, setUserPlaylists] = React.useState();
+  const [allPlaylistsLoaded, setAllPlaylistsLoaded] = React.useState(false);
 
   const [width, setWidth] = React.useState();
   const [gridDisplayIndex, setGridDisplayIndex] = React.useState(0);
@@ -70,6 +59,7 @@ export default function Home() {
     if (accessToken && !userData) {
       getSpotifyUserData();
       getInitialSpotifyUserAlbums();
+      getSpotifyPlaylists();
     }
   }, [accessToken]);
 
@@ -143,6 +133,32 @@ export default function Home() {
       }
 
       setUserAlbums(response.data.items);
+    } catch (error) {
+      console.log(error);
+      router.push('/connect');
+    }
+  };
+
+  const getSpotifyPlaylists = async () => {
+    try {
+      const response = await axios.get(
+        'https://api.spotify.com/v1/me/playlists',
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`
+          },
+          params: {
+            limit: 12
+          }
+        }
+      );
+
+      if (response.data.items.length === response.data.items.total) {
+        setAllPlaylistsLoaded(true);
+      }
+
+      console.log(tempArray);
+      setUserPlaylists(response.data.items);
     } catch (error) {
       console.log(error);
       router.push('/connect');
@@ -232,7 +248,6 @@ export default function Home() {
 
       // If the number of albums we got back is less than the "limit", then we've loaded all albums
       if (response.data.items.length < SPOTIFY_ALBUM_LOAD_LIMIT) {
-        console.log('ALL SPOTIFY ALBUMS LOADED!');
         setAllAlbumsLoaded(true);
       }
 
@@ -295,7 +310,6 @@ export default function Home() {
           releaseId: topResult.id
         };
 
-        console.log('Got discogs release: ', match.spotifyAlbumName);
         return match;
       }
     } catch (error) {
@@ -353,13 +367,19 @@ export default function Home() {
             )}
           </section>
 
-          {/* <section className={classes.releaseSection}>
+          <section className={classes.releaseSection}>
             <div className={classes.releaseSection__headerWrapper}>
               <h3 className={classes.releaseSection__header}>
-                Explore Your Playlists
+                Explore Your Playlists (Coming Soon)
               </h3>
             </div>
-          </section> */}
+
+            {userPlaylists ? (
+              <PlaylistGrid playlists={userPlaylists} />
+            ) : (
+              <Loader type="TailSpin" color="#999999" height={35} width={35} />
+            )}
+          </section>
         </main>
 
         <footer className={classes.footer}>
