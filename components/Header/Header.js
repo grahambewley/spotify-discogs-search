@@ -1,10 +1,15 @@
 import React from 'react';
 import classes from './Header.module.css';
+import Link from 'next/link';
 
 const Header = ({ userData }) => {
   return (
     <header className={classes.container}>
-      <h3 className={classes.tempLogo}>Spotify Discogs Search</h3>
+      <Link href="/">
+        <a className={classes.tempLogoLink}>
+          <h3 className={classes.tempLogo}>FindOnVinyl</h3>
+        </a>
+      </Link>
 
       <div className={classes.user}>
         {userData && (

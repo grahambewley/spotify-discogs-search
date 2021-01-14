@@ -2,11 +2,19 @@
   padding: 0.5rem 0 0 3px;
 }
 .releaseName {
+  margin-bottom: 6px;
 }
-.releaseArtist {
+.releaseDetailIcon {
+  width: 0.7rem;
+  margin-right: 8px;
+}
+.releaseDetail {
+  display: flex;
+  align-items: center;
   font-weight: 500;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 2px;
   color: #666;
+  margin-bottom: 4px;
 }

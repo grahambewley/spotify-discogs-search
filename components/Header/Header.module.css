@@ -7,8 +7,12 @@
   align-items: center;
 }
 
+.tempLogoLink {
+  text-decoration: none;
+}
 .tempLogo {
   margin: 0;
+  text-decoration: none;
 }
 
 .user {

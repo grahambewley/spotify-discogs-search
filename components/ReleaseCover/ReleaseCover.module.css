@@ -1,19 +1,24 @@
 .releaseLink {
   position: relative;
   display: block;
+  overflow: hidden;
 }
 .releaseLinkLabel {
   position: absolute;
   top: 50%;
   left: 50%;
+  width: calc(100% - 2rem);
   transform: translate(-50%, -50%);
-  width: 100%;
-  padding: 1rem;
+  background-color: rgba(100, 100, 100, 0.8);
+  border-radius: 200px;
+  padding: 0.5rem 1rem;
+
   text-align: center;
   text-transform: uppercase;
+  color: white;
   letter-spacing: 2px;
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: 0.75rem;
+  font-weight: 400;
   opacity: 0;
   transition: all 0.25s;
   z-index: 100;
@@ -26,7 +31,7 @@
 }
 .releaseLink:hover .releaseCover {
   opacity: 0.7;
-  filter: blur(2px);
+  filter: blur(3px);
 }
 .releaseLink:hover .releaseLinkLabel {
   opacity: 1;

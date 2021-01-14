@@ -11,9 +11,7 @@ const ReleaseCover = ({ release }) => {
         rel="noopener noreferrer"
         target="_blank"
       >
-        <span className={classes.releaseLinkLabel}>
-          View Release on Discogs
-        </span>
+        <span className={classes.releaseLinkLabel}>View vinyl release</span>
         <img className={classes.releaseCover} src={release.spotifyImageUrl} />
       </a>
     </div>

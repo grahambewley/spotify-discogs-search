@@ -18,6 +18,7 @@ export default function Home() {
   const [allAlbumsLoaded, setAllAlbumsLoaded] = React.useState(false);
   const [userAlbumsSearchIndex, setUserAlbumsSearchIndex] = React.useState(0);
   const [matchedReleases, setMatchedReleases] = React.useState([]);
+  const [discogsError, setDiscogsError] = React.useState(false);
 
   const [gridDisplayIndex, setGridDisplayIndex] = React.useState(0);
   const [gridDisplayCount, setGridDisplayCount] = React.useState(4);
@@ -85,7 +86,7 @@ export default function Home() {
       setUserData(response.data);
     } catch (error) {
       console.log(error);
-      alert('Error getting Spotify user data');
+      router.push('/connect');
     }
   };
 
@@ -108,7 +109,7 @@ export default function Home() {
       setUserAlbums(response.data.items);
     } catch (error) {
       console.log(error);
-      alert('Error getting Spotify albums for user');
+      router.push('/connect');
     }
   };
 
@@ -213,11 +214,10 @@ export default function Home() {
       return tempUserAlbums;
     } catch (error) {
       console.log(error);
-      alert('Error getting Spotify albums for user');
+      router.push('/connect');
     }
   };
 
-  // Takes in an album item from Spotify - returns a Discogs release if one exists
   const getDiscogsRelease = async album => {
     let params = {
       q: album.name,
@@ -270,7 +270,6 @@ export default function Home() {
       }
     } catch (error) {
       console.log(error);
-      alert('Error searching Discogs for releases: ' + error);
     }
   };
 
@@ -288,7 +287,7 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Spotify Discogs Search</title>
+        <title>FindOnVinyl</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Header userData={userData} />
