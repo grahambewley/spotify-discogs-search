@@ -21,6 +21,10 @@
   }
 }
 
+.playlist__link {
+  text-decoration: none;
+}
+
 .playlist__cover {
   width: 100%;
   border-radius: 2px;
