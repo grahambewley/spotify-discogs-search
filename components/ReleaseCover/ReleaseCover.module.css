@@ -34,10 +34,13 @@
   width: 100%;
   transition: all 0.25s;
 }
-.releaseLink:hover .releaseCover {
-  opacity: 0.7;
-  filter: blur(3px);
-}
-.releaseLink:hover .releaseLinkLabel {
-  opacity: 1;
+
+@media (min-width: 501px) {
+  .releaseLink:hover .releaseCover {
+    opacity: 0.7;
+    filter: blur(3px);
+  }
+  .releaseLink:hover .releaseLinkLabel {
+    opacity: 1;
+  }
 }

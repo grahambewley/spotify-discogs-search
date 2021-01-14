@@ -9,6 +9,7 @@
 @media (max-width: 500px) {
   .grid {
     flex-direction: column;
+    gap: 4rem;
   }
 }
 
