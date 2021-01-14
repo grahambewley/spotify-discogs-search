@@ -62,3 +62,7 @@
   letter-spacing: 2px;
   color: #222;
 }
+.moreButton:focus,
+.moreButton:active {
+  outline: none;
+}
