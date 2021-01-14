@@ -7,16 +7,20 @@ import ReleaseGrid from '../components/ReleaseGrid/ReleaseGrid';
 import classes from '../styles/Home.module.css';
 import axios from 'axios';
 
+const SPOTIFY_ALBUM_LOAD_LIMIT = 20;
+
 export default function Home() {
   const [accessToken, setAccessToken] = React.useState();
   const [userData, setUserData] = React.useState();
 
   const [userAlbums, setUserAlbums] = React.useState();
-  const [userAlbumsSearched, setUserAlbumsSearched] = React.useState(0);
+  // This is set to true when we determine we've pulled all of a user's Spotify albums
+  const [allAlbumsLoaded, setAllAlbumsLoaded] = React.useState(false);
+  const [userAlbumsSearchIndex, setUserAlbumsSearchIndex] = React.useState(0);
   const [matchedReleases, setMatchedReleases] = React.useState([]);
 
-  const [albumGridStart, setAlbumGridStart] = React.useState(0);
-  const [gridWidth, setGridWidth] = React.useState(4);
+  const [gridDisplayIndex, setGridDisplayIndex] = React.useState(0);
+  const [gridDisplayCount, setGridDisplayCount] = React.useState(4);
 
   const router = useRouter();
 
@@ -49,27 +53,27 @@ export default function Home() {
   React.useEffect(() => {
     if (accessToken && !userData) {
       getSpotifyUserData();
-      getSpotifyUserAlbums();
+      getInitialSpotifyUserAlbums();
     }
   }, [accessToken]);
 
   // Watch for userAlbums to be set/changed - get Discogs releases
   React.useEffect(() => {
-    if (userAlbums) {
-      getDiscogsReleases(userAlbums);
+    if (userAlbums && userAlbumsSearchIndex == 0) {
+      getInitialDiscogsReleases();
     }
   }, [userAlbums]);
 
-  // Watch for albumGridStart+gridWidth to reach the end of the matchedReleases - then go get another
+  // Watch for gridDisplayIndex+gridDisplayCount to reach the end of the matchedReleases - then go get another
   React.useEffect(() => {
     // We have to have userAlbums already for any of this to matter...
     if (userAlbums) {
       // Make sure we have enough releases to display - get more if necessary
-      if (matchedReleases.length < albumGridStart + gridWidth + 2) {
-        getDiscogsReleases(userAlbums);
+      if (gridDisplayIndex + gridDisplayCount == matchedReleases.length) {
+        loadNextDiscogsRelease();
       }
     }
-  }, [albumGridStart]);
+  }, [gridDisplayIndex]);
 
   const getSpotifyUserData = async () => {
     try {
@@ -85,16 +89,22 @@ export default function Home() {
     }
   };
 
-  const getSpotifyUserAlbums = async () => {
+  const getInitialSpotifyUserAlbums = async () => {
     try {
       const response = await axios.get('https://api.spotify.com/v1/me/albums', {
         headers: {
           Authorization: `Bearer ${accessToken}`
         },
         params: {
-          limit: 50
+          limit: SPOTIFY_ALBUM_LOAD_LIMIT
         }
       });
+
+      // If the number of albums we got back is less than the "limit", then we've loaded all albums
+      if (response.data.items.length < SPOTIFY_ALBUM_LOAD_LIMIT) {
+        setAllAlbumsLoaded(true);
+      }
+
       setUserAlbums(response.data.items);
     } catch (error) {
       console.log(error);
@@ -102,24 +112,112 @@ export default function Home() {
     }
   };
 
-  const getDiscogsReleases = async userAlbums => {
-    let tempArray = matchedReleases;
+  const getInitialDiscogsReleases = async () => {
+    let releaseArray = [];
+    let i = userAlbumsSearchIndex;
 
-    let i = userAlbumsSearched;
+    // Load the array of releases until we have enough to fill the grid + 1
+    while (releaseArray.length < gridDisplayIndex + gridDisplayCount + 1) {
+      // TODO
+      // If i reaches userAlbums.length, then we need to load more Spotify albums
 
-    console.log('Searching spotify albums starting at index ' + i);
-    // Load the array of releases until we have enough to fill the grid - plus a couple extras they're ready to scroll in
-    while (tempArray.length < albumGridStart + gridWidth + 2) {
       let res = await getDiscogsRelease(userAlbums[i].album);
       if (res) {
-        tempArray = [...tempArray, res];
+        releaseArray = [...releaseArray, res];
       }
       i++;
     }
-    setUserAlbumsSearched(i);
-    setMatchedReleases(tempArray);
+
+    // Then set the album search index to where we left off
+    setUserAlbumsSearchIndex(i);
+    // Initialize our matched releases array
+    setMatchedReleases(releaseArray);
   };
 
+  const loadNextDiscogsRelease = async () => {
+    let releaseArray = matchedReleases;
+    let i = userAlbumsSearchIndex;
+
+    let foundMatch = false;
+
+    while (!foundMatch) {
+      // If i reaches userAlbums.length, then we need to load more Spotify albums
+      if (i == userAlbums.length) {
+        // If we've already pulled all Spotify albums, just return - no more albums to search
+        if (allAlbumsLoaded) {
+          return;
+        }
+        // otherwise go ahead and get more spotify albums
+        else {
+          const newUserAlbums = await getNextSpotifyUserAlbums();
+          // If we went to get albums and the same number came back, that means there were 0 more to load
+          // This happens when our last load from spotify pulled the exact number of remaining albums
+          // which doesn't trigger allAlbumsLoaded to be set to true...
+          if (newUserAlbums.length === userAlbums.length) {
+            console.log('Edge case avoided!');
+            return;
+          } else {
+            let res = await getDiscogsRelease(newUserAlbums[i].album);
+            if (res) {
+              releaseArray = [...releaseArray, res];
+              foundMatch = true;
+            }
+            i++;
+          }
+        }
+      } else {
+        let res = await getDiscogsRelease(userAlbums[i].album);
+        if (res) {
+          releaseArray = [...releaseArray, res];
+          foundMatch = true;
+        }
+        i++;
+      }
+    }
+
+    // Then set the album search index to where we left off
+    setUserAlbumsSearchIndex(i);
+    // and update our matchedReleases
+    setMatchedReleases(releaseArray);
+  };
+
+  const getNextSpotifyUserAlbums = async () => {
+    console.log('getNextSpotifyUserAlbums triggered...');
+    console.log(
+      'searched index is currently ' +
+        userAlbumsSearchIndex +
+        ' and  userAlbums length is ' +
+        userAlbums.length
+    );
+    try {
+      const response = await axios.get('https://api.spotify.com/v1/me/albums', {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        },
+        params: {
+          limit: SPOTIFY_ALBUM_LOAD_LIMIT,
+          offset: userAlbums.length
+        }
+      });
+
+      // If the number of albums we got back is less than the "limit", then we've loaded all albums
+      if (response.data.items.length < SPOTIFY_ALBUM_LOAD_LIMIT) {
+        console.log('ALL SPOTIFY ALBUMS LOADED!');
+        setAllAlbumsLoaded(true);
+      }
+
+      let tempUserAlbums = [...userAlbums, ...response.data.items];
+      console.log('Setting userAlbums to ', tempUserAlbums);
+      setUserAlbums(tempUserAlbums);
+
+      return tempUserAlbums;
+    } catch (error) {
+      console.log(error);
+      alert('Error getting Spotify albums for user');
+    }
+  };
+
+  // Takes in an album item from Spotify - returns a Discogs release if one exists
   const getDiscogsRelease = async album => {
     let params = {
       q: album.name,
@@ -157,6 +255,7 @@ export default function Home() {
           artistList = artistList.slice(0, -2);
         }
 
+        // Create a match object to return out
         const match = {
           spotifyAlbumName: album.name,
           spotifyArtist: artistList,
@@ -171,16 +270,18 @@ export default function Home() {
       }
     } catch (error) {
       console.log(error);
-      alert('Error searching Discogs for releases');
+      alert('Error searching Discogs for releases: ' + error);
     }
   };
 
   const handleAlbumGridForward = () => {
-    setAlbumGridStart(albumGridStart + 1);
+    if (gridDisplayIndex + gridDisplayCount < matchedReleases.length) {
+      setGridDisplayIndex(gridDisplayIndex + 1);
+    }
   };
   const handleAlbumGridReverse = () => {
-    if (albumGridStart > 0) {
-      setAlbumGridStart(albumGridStart - 1);
+    if (gridDisplayIndex > 0) {
+      setGridDisplayIndex(gridDisplayIndex - 1);
     }
   };
 
@@ -201,8 +302,8 @@ export default function Home() {
             </div>
             <ReleaseGrid
               releases={matchedReleases.slice(
-                albumGridStart,
-                albumGridStart + gridWidth
+                gridDisplayIndex,
+                gridDisplayIndex + gridDisplayCount
               )}
               albumGridForward={() => handleAlbumGridForward()}
               albumGridReverse={() => handleAlbumGridReverse()}
