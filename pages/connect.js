@@ -3,6 +3,7 @@ import Head from 'next/head';
 import { useCookies } from 'react-cookie';
 import { Router, useRouter } from 'next/router';
 import classes from '../styles/Connect.module.css';
+import Image from 'next/image';
 
 export default function Home() {
   const [cookies, setCookie, removeCookie] = useCookies();
@@ -27,10 +28,17 @@ export default function Home() {
       </Head>
 
       <main className={classes.main}>
-        <h1 className={classes.title}>Welcome to Spotify Discogs Search</h1>
-        <p className={classes.description}>Find your Spotify music on vinyl</p>
+        <h1 className={classes.title}>FindOnVinyl</h1>
+        <p className={classes.description}>
+          Find out which of your favorites from Spotify are available to
+          purchase on vinyl
+        </p>
         <a className={classes.loginButton} href={spotifyAuthorizationUrl}>
-          Log In With Spotify
+          <span>Log In With </span>
+          <img
+            className={classes.loginButtonSpotifyLogo}
+            src="./spotify-white.png"
+          />
         </a>
       </main>
 

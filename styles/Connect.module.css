@@ -47,12 +47,19 @@
   border-radius: 200px;
   text-decoration: none;
   color: white;
-  font-weight: 600;
+  font-weight: 400;
   text-transform: uppercase;
   letter-spacing: 2px;
+  line-height: 1;
   transition: all 0.2s;
+  display: flex;
+  align-items: center;
 }
-.loginButton:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+.loginButton span {
+  margin-top: 3px;
+}
+
+.loginButtonSpotifyLogo {
+  height: 1.8rem;
+  margin-left: 0.4em;
 }
