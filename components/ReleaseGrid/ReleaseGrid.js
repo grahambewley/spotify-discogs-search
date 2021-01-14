@@ -7,6 +7,7 @@ const ReleaseGrid = ({
   releases,
   albumGridForward,
   albumGridReverse,
+  albumGridMore,
   width
 }) => {
   return (
@@ -43,7 +44,7 @@ const ReleaseGrid = ({
               </div>
             ))}
           </div>
-          <button className={classes.moreButton} onClick={albumGridForward}>
+          <button className={classes.moreButton} onClick={albumGridMore}>
             Show More
           </button>
         </>

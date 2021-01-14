@@ -110,7 +110,7 @@ export default function Home() {
         loadNextDiscogsRelease();
       }
     }
-  }, [gridDisplayIndex]);
+  }, [gridDisplayIndex, gridDisplayCount]);
 
   const getSpotifyUserData = async () => {
     try {
@@ -174,8 +174,18 @@ export default function Home() {
   const loadNextDiscogsRelease = async () => {
     let releaseArray = matchedReleases;
     let i = userAlbumsSearchIndex;
+    // When we run the function, get current userAlbums
+    let albs = userAlbums;
 
     let foundMatch = false;
+
+    const discogsGetter = async album => {
+      let res = await getDiscogsRelease(album);
+      if (res) {
+        releaseArray = [...releaseArray, res];
+        foundMatch = true;
+      }
+    };
 
     while (!foundMatch) {
       // If i reaches userAlbums.length, then we need to load more Spotify albums
@@ -183,31 +193,20 @@ export default function Home() {
         // If we've already pulled all Spotify albums, just return - no more albums to search
         if (allAlbumsLoaded) {
           return;
-        }
-        // otherwise go ahead and get more spotify albums
-        else {
-          const newUserAlbums = await getNextSpotifyUserAlbums();
-          // If we went to get albums and the same number came back, that means there were 0 more to load
-          // This happens when our last load from spotify pulled the exact number of remaining albums
-          // which doesn't trigger allAlbumsLoaded to be set to true...
-          if (newUserAlbums.length === userAlbums.length) {
-            console.log('Edge case avoided!');
+        } else {
+          albs = await getNextSpotifyUserAlbums();
+
+          // Edge case: If 0 new albums come back, then our last load pulled the exact # albums remaining - we're done
+          if (albs.length === userAlbums.length) {
             return;
           } else {
-            let res = await getDiscogsRelease(newUserAlbums[i].album);
-            if (res) {
-              releaseArray = [...releaseArray, res];
-              foundMatch = true;
-            }
+            await discogsGetter(albs[i].album);
             i++;
           }
         }
       } else {
-        let res = await getDiscogsRelease(userAlbums[i].album);
-        if (res) {
-          releaseArray = [...releaseArray, res];
-          foundMatch = true;
-        }
+        console.log('here we see userAlbums as ', albs);
+        await discogsGetter(albs[i].album);
         i++;
       }
     }
@@ -220,12 +219,6 @@ export default function Home() {
 
   const getNextSpotifyUserAlbums = async () => {
     console.log('getNextSpotifyUserAlbums triggered...');
-    console.log(
-      'searched index is currently ' +
-        userAlbumsSearchIndex +
-        ' and  userAlbums length is ' +
-        userAlbums.length
-    );
     try {
       const response = await axios.get('https://api.spotify.com/v1/me/albums', {
         headers: {
@@ -302,6 +295,7 @@ export default function Home() {
           releaseId: topResult.id
         };
 
+        console.log('Got discogs release: ', match.spotifyAlbumName);
         return match;
       }
     } catch (error) {
@@ -317,6 +311,14 @@ export default function Home() {
   const handleAlbumGridReverse = () => {
     if (gridDisplayIndex > 0) {
       setGridDisplayIndex(gridDisplayIndex - 1);
+    }
+  };
+  const handleAlbumGridMore = () => {
+    console.log('gridDisplayCount = ' + gridDisplayCount);
+    console.log('matchedReleases.length = ' + matchedReleases.length);
+    if (gridDisplayCount < matchedReleases.length) {
+      console.log('displaying more...');
+      setGridDisplayCount(gridDisplayCount + 1);
     }
   };
 
@@ -343,6 +345,7 @@ export default function Home() {
                 )}
                 albumGridForward={() => handleAlbumGridForward()}
                 albumGridReverse={() => handleAlbumGridReverse()}
+                albumGridMore={() => handleAlbumGridMore()}
                 width={width}
               />
             ) : (
