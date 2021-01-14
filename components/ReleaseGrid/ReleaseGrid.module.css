@@ -6,6 +6,12 @@
   gap: 2rem;
 }
 
+@media (max-width: 500px) {
+  .grid {
+    flex-direction: column;
+  }
+}
+
 .backButton,
 .nextButton {
   height: 1.4rem;
@@ -41,4 +47,17 @@
 .backButton:focus,
 .nextButton:focus {
   outline: none;
+}
+
+.moreButton {
+  margin-top: 2rem;
+  width: 100%;
+  text-align: center;
+  padding: 0.5rem;
+  background-color: #f9f9f9;
+  border-radius: 500px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: #222;
 }

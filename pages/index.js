@@ -91,14 +91,12 @@ export default function Home() {
 
   React.useEffect(() => {
     if (width) {
-      if (width > 1200) {
+      if (width > 1200 || width <= 500) {
         setGridDisplayCount(4);
       } else if (width > 700) {
         setGridDisplayCount(3);
-      } else if (width > 500) {
-        setGridDisplayCount(2);
       } else {
-        setGridDisplayCount(1);
+        setGridDisplayCount(2);
       }
     }
   }, [width]);
@@ -113,11 +111,6 @@ export default function Home() {
       }
     }
   }, [gridDisplayIndex]);
-
-  const getWidth = () =>
-    window.innerWidth ||
-    document.documentElement.clientWidth ||
-    document.body.clientWidth;
 
   const getSpotifyUserData = async () => {
     try {
@@ -350,6 +343,7 @@ export default function Home() {
                 )}
                 albumGridForward={() => handleAlbumGridForward()}
                 albumGridReverse={() => handleAlbumGridReverse()}
+                width={width}
               />
             ) : (
               <Loader type="TailSpin" color="#999999" height={35} width={35} />
