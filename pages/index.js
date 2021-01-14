@@ -10,6 +10,20 @@ import Loader from 'react-loader-spinner';
 
 const SPOTIFY_ALBUM_LOAD_LIMIT = 20;
 
+// Custom hook watching window size
+function useWindowSize() {
+  const [size, setSize] = React.useState();
+  React.useLayoutEffect(() => {
+    function updateSize() {
+      setSize(window.innerWidth);
+    }
+    window.addEventListener('resize', updateSize);
+    updateSize();
+    return () => window.removeEventListener('resize', updateSize);
+  }, []);
+  return size;
+}
+
 export default function Home() {
   const [accessToken, setAccessToken] = React.useState();
   const [userData, setUserData] = React.useState();
@@ -19,8 +33,8 @@ export default function Home() {
   const [allAlbumsLoaded, setAllAlbumsLoaded] = React.useState(false);
   const [userAlbumsSearchIndex, setUserAlbumsSearchIndex] = React.useState(0);
   const [matchedReleases, setMatchedReleases] = React.useState([]);
-  const [discogsError, setDiscogsError] = React.useState(false);
 
+  const [width, setWidth] = React.useState();
   const [gridDisplayIndex, setGridDisplayIndex] = React.useState(0);
   const [gridDisplayCount, setGridDisplayCount] = React.useState(4);
 
@@ -66,6 +80,29 @@ export default function Home() {
     }
   }, [userAlbums]);
 
+  React.useLayoutEffect(() => {
+    function updateWidth() {
+      setWidth(window.innerWidth);
+    }
+    window.addEventListener('resize', updateWidth);
+    updateWidth();
+    return () => window.removeEventListener('resize', updateWidth);
+  }, []);
+
+  React.useEffect(() => {
+    if (width) {
+      if (width > 1200) {
+        setGridDisplayCount(4);
+      } else if (width > 700) {
+        setGridDisplayCount(3);
+      } else if (width > 500) {
+        setGridDisplayCount(2);
+      } else {
+        setGridDisplayCount(1);
+      }
+    }
+  }, [width]);
+
   // Watch for gridDisplayIndex+gridDisplayCount to reach the end of the matchedReleases - then go get another
   React.useEffect(() => {
     // We have to have userAlbums already for any of this to matter...
@@ -76,6 +113,11 @@ export default function Home() {
       }
     }
   }, [gridDisplayIndex]);
+
+  const getWidth = () =>
+    window.innerWidth ||
+    document.documentElement.clientWidth ||
+    document.body.clientWidth;
 
   const getSpotifyUserData = async () => {
     try {

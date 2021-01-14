@@ -1,5 +1,6 @@
 .releaseInfo {
   padding: 0.5rem 0 0 3px;
+  flex: 1 0 0;
 }
 .releaseName {
   margin-bottom: 6px;

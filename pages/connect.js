@@ -30,8 +30,7 @@ export default function Home() {
       <main className={classes.main}>
         <h1 className={classes.title}>FindOnVinyl</h1>
         <p className={classes.description}>
-          Find out which of your favorites from Spotify are available to
-          purchase on vinyl
+          Discover vinyl releases in your Spotify library
         </p>
         <a className={classes.loginButton} href={spotifyAuthorizationUrl}>
           <span>Log In With </span>
