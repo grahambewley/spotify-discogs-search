@@ -9,6 +9,13 @@
 
 .tempLogoLink {
   text-decoration: none;
+  display: flex;
+  align-items: center;
+}
+.tempLogoIcon {
+  height: 1.8rem;
+  margin-right: 0.5rem;
+  color: #3ea49d;
 }
 .tempLogo {
   margin: 0;
