@@ -4,10 +4,10 @@ import { useRouter } from 'next/router';
 import { useCookies } from 'react-cookie';
 import Header from '../components/Header/Header';
 import ReleaseGrid from '../components/ReleaseGrid/ReleaseGrid';
-import PlaylistGrid from '../components/PlaylistGrid/PlaylistGrid';
 import classes from '../styles/Home.module.css';
 import axios from 'axios';
 import Loader from 'react-loader-spinner';
+import PlaylistGrid from '../components/PlaylistGrid/PlaylistGrid';
 
 const SPOTIFY_ALBUM_LOAD_LIMIT = 20;
 
@@ -16,6 +16,7 @@ export default function Home() {
   const [userData, setUserData] = React.useState();
 
   const [userAlbums, setUserAlbums] = React.useState();
+  // This is set to true when we determine we've pulled all of a user's Spotify albums
   const [allAlbumsLoaded, setAllAlbumsLoaded] = React.useState(false);
   const [userAlbumsSearchIndex, setUserAlbumsSearchIndex] = React.useState(0);
   const [matchedReleases, setMatchedReleases] = React.useState([]);
@@ -153,11 +154,12 @@ export default function Home() {
         }
       );
 
+      console.log('playlists response: ', response);
+
       if (response.data.items.length === response.data.items.total) {
         setAllPlaylistsLoaded(true);
       }
 
-      console.log(tempArray);
       setUserPlaylists(response.data.items);
     } catch (error) {
       console.log(error);
@@ -310,6 +312,7 @@ export default function Home() {
           releaseId: topResult.id
         };
 
+        console.log('Got discogs release: ', match.spotifyAlbumName);
         return match;
       }
     } catch (error) {
@@ -370,15 +373,10 @@ export default function Home() {
           <section className={classes.releaseSection}>
             <div className={classes.releaseSection__headerWrapper}>
               <h3 className={classes.releaseSection__header}>
-                Explore Your Playlists (Coming Soon)
+                Explore Your Playlists
               </h3>
             </div>
-
-            {userPlaylists ? (
-              <PlaylistGrid playlists={userPlaylists} />
-            ) : (
-              <Loader type="TailSpin" color="#999999" height={35} width={35} />
-            )}
+            {userPlaylists && <PlaylistGrid playlists={userPlaylists} />}
           </section>
         </main>
 
