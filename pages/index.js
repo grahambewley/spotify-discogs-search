@@ -20,13 +20,21 @@ export default function Home() {
   const [allAlbumsLoaded, setAllAlbumsLoaded] = React.useState(false);
   const [userAlbumsSearchIndex, setUserAlbumsSearchIndex] = React.useState(0);
   const [matchedReleases, setMatchedReleases] = React.useState([]);
+  const [albumGridDisplayIndex, setAlbumGridDisplayIndex] = React.useState(0);
+
+  const [userTracks, setUserTracks] = React.useState();
+  const [matchedTracks, setMatchedTracks] = React.useState([]);
+  const [allTracksLoaded] = React.useState(false);
+  const [userTracksSearchIndex, setUserTracksSearchIndex] = React.useState(0);
+  const [trackGridDisplayIndex, setTrackGridDisplayIndex] = React.useState(0);
 
   const [userPlaylists, setUserPlaylists] = React.useState();
   const [allPlaylistsLoaded, setAllPlaylistsLoaded] = React.useState(false);
 
   const [width, setWidth] = React.useState();
-  const [gridDisplayIndex, setGridDisplayIndex] = React.useState(0);
-  const [gridDisplayCount, setGridDisplayCount] = React.useState(4);
+
+  const [albumGridDisplayCount, setAlbumGridDisplayCount] = React.useState(4);
+  const [trackGridDisplayCount, setTrackGridDisplayCount] = React.useState(4);
 
   const router = useRouter();
 
@@ -60,16 +68,24 @@ export default function Home() {
     if (accessToken && !userData) {
       getSpotifyUserData();
       getInitialSpotifyUserAlbums();
+      getInitialSpotifyTracks();
       getSpotifyPlaylists();
     }
   }, [accessToken]);
 
-  // Watch for userAlbums to be set/changed - get Discogs releases
+  // Watch for userAlbums to be set/changed - get Discogs releases for albums
   React.useEffect(() => {
     if (userAlbums && userAlbumsSearchIndex == 0) {
       getInitialDiscogsReleases();
     }
   }, [userAlbums]);
+
+  // Watch for userTracks to be set/changed - get Discogs releases for tracks
+  React.useEffect(() => {
+    if (userTracks && userTracksSearchIndex == 0) {
+      getInitialDiscogsReleasesFromTracks();
+    }
+  }, [userTracks]);
 
   React.useLayoutEffect(() => {
     function updateWidth() {
@@ -83,25 +99,46 @@ export default function Home() {
   React.useEffect(() => {
     if (width) {
       if (width > 1200 || width <= 500) {
-        setGridDisplayCount(4);
+        setAlbumGridDisplayCount(4);
+        setTrackGridDisplayCount(4);
       } else if (width > 700) {
-        setGridDisplayCount(3);
+        setAlbumGridDisplayCount(3);
+        setTrackGridDisplayCount(3);
       } else {
-        setGridDisplayCount(2);
+        setAlbumGridDisplayCount(2);
+        setTrackGridDisplayCount(2);
       }
     }
   }, [width]);
 
-  // Watch for gridDisplayIndex+gridDisplayCount to reach the end of the matchedReleases - then go get another
+  // Watch for albumGridDisplayIndex+albumGridDisplayCount to reach the end of the matchedReleases - then go get another
   React.useEffect(() => {
     // We have to have userAlbums already for any of this to matter...
     if (userAlbums) {
       // Make sure we have enough releases to display - get more if necessary
-      if (gridDisplayIndex + gridDisplayCount == matchedReleases.length) {
+      if (
+        albumGridDisplayIndex + albumGridDisplayCount ==
+        matchedReleases.length
+      ) {
         loadNextDiscogsRelease();
       }
     }
-  }, [gridDisplayIndex, gridDisplayCount]);
+  }, [albumGridDisplayIndex, albumGridDisplayCount]);
+
+  // Watch for trackGridDisplayIndex+trackGridDisplayCount to reach the end of the matchedTracks
+  // -- then go get another
+  React.useEffect(() => {
+    // We have to have userTracks already for any of this to matter...
+    if (userTracks) {
+      // Make sure we have enough releases to display - get more if necessary
+      if (
+        trackGridDisplayIndex + trackGridDisplayCount ==
+        matchedTracks.length
+      ) {
+        loadNextDiscogsReleaseFromTrack();
+      }
+    }
+  }, [trackGridDisplayIndex, trackGridDisplayCount]);
 
   const getSpotifyUserData = async () => {
     try {
@@ -140,6 +177,29 @@ export default function Home() {
     }
   };
 
+  const getInitialSpotifyTracks = async () => {
+    try {
+      const response = await axios.get('https://api.spotify.com/v1/me/tracks', {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        },
+        params: {
+          limit: SPOTIFY_ALBUM_LOAD_LIMIT
+        }
+      });
+
+      console.log('Spotify tracks: ', response.data.items);
+      if (response.data.items.length === response.data.items.total) {
+        setAllTracksLoaded(true);
+      }
+
+      setUserTracks(response.data.items);
+    } catch (error) {
+      console.log(error);
+      router.push('/connect');
+    }
+  };
+
   const getSpotifyPlaylists = async () => {
     try {
       const response = await axios.get(
@@ -153,8 +213,6 @@ export default function Home() {
           }
         }
       );
-
-      console.log('playlists response: ', response);
 
       if (response.data.items.length === response.data.items.total) {
         setAllPlaylistsLoaded(true);
@@ -172,7 +230,10 @@ export default function Home() {
     let i = userAlbumsSearchIndex;
 
     // Load the array of releases until we have enough to fill the grid + 1
-    while (releaseArray.length < gridDisplayIndex + gridDisplayCount + 1) {
+    while (
+      releaseArray.length <
+      albumGridDisplayIndex + albumGridDisplayCount + 1
+    ) {
       // TODO
       // If i reaches userAlbums.length, then we need to load more Spotify albums
 
@@ -187,6 +248,35 @@ export default function Home() {
     setUserAlbumsSearchIndex(i);
     // Initialize our matched releases array
     setMatchedReleases(releaseArray);
+  };
+
+  const getInitialDiscogsReleasesFromTracks = async () => {
+    console.log('getting initial discogs releases from tracks...');
+    let releaseArray = [];
+    let i = userTracksSearchIndex;
+
+    //Load the array of releases from track albums until we have enough to fill the grid + 1
+    while (
+      releaseArray.length <
+      trackGridDisplayIndex + trackGridDisplayCount + 1
+    ) {
+      const currentTrack = userTracks[i].track;
+
+      let res = await getDiscogsRelease(userTracks[i].track.album);
+
+      console.log('Response from searching track album: ', res);
+      if (res) {
+        const newTrackMatch = res;
+        newTrackMatch.spotifyTrackName = currentTrack.name;
+        releaseArray = [...releaseArray, newTrackMatch];
+      }
+      i++;
+    }
+
+    //Then set the album search index to where we left off
+    setUserTracksSearchIndex(i);
+    // Initialize our matched releases array
+    setMatchedTracks(releaseArray);
   };
 
   const loadNextDiscogsRelease = async () => {
@@ -235,6 +325,48 @@ export default function Home() {
     setMatchedReleases(releaseArray);
   };
 
+  const loadNextDiscogsReleaseFromTrack = async () => {
+    let releaseArray = matchedTracks;
+    let i = userTracksSearchIndex;
+    // When we run the function, get current userTracks
+    let trks = userTracks;
+
+    let foundMatch = false;
+
+    const discogsGetter = async track => {
+      console.log('Discogs Gettr Got This: ', track);
+      let res = await getDiscogsRelease(track.track.album);
+      if (res) {
+        let newMatch = res;
+        newMatch.spotifyTrackName = track.track.name;
+        releaseArray = [...releaseArray, newMatch];
+        foundMatch = true;
+      }
+    };
+
+    while (!foundMatch) {
+      // If i reaches userAlbums.length, then we need to load more Spotify albums
+      if (i == userTracks.length) {
+        // If we've already pulled all Spotify albums, just return - no more albums to search
+        if (allTracksLoaded) {
+          return;
+        } else {
+          trks = await getNextSpotifyUserTracks();
+          await discogsGetter(trks[i]);
+          i++;
+        }
+      } else {
+        await discogsGetter(trks[i]);
+        i++;
+      }
+    }
+
+    // Then set the track search index to where we left off
+    setUserTracksSearchIndex(i);
+    // and update our matchedTracks
+    setMatchedTracks(releaseArray);
+  };
+
   const getNextSpotifyUserAlbums = async () => {
     console.log('getNextSpotifyUserAlbums triggered...');
     try {
@@ -258,6 +390,37 @@ export default function Home() {
       setUserAlbums(tempUserAlbums);
 
       return tempUserAlbums;
+    } catch (error) {
+      console.log(error);
+      router.push('/connect');
+    }
+  };
+
+  const getNextSpotifyUserTracks = async () => {
+    console.log('getNextSpotifyUserTracks triggered...');
+    try {
+      const response = await axios.get('https://api.spotify.com/v1/me/tracks', {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        },
+        params: {
+          limit: SPOTIFY_ALBUM_LOAD_LIMIT,
+          offset: userTracks.length
+        }
+      });
+
+      if (
+        userTracks.length + response.data.items.length ===
+        response.data.items.total
+      ) {
+        setAllTracksLoaded(true);
+      }
+
+      let tempUserTracks = [...userTracks, ...response.data.items];
+      console.log('Setting userTracks to ', tempUserTracks);
+      setUserTracks(tempUserTracks);
+
+      return tempUserTracks;
     } catch (error) {
       console.log(error);
       router.push('/connect');
@@ -321,21 +484,37 @@ export default function Home() {
   };
 
   const handleAlbumGridForward = () => {
-    if (gridDisplayIndex + gridDisplayCount < matchedReleases.length) {
-      setGridDisplayIndex(gridDisplayIndex + 1);
+    if (
+      albumGridDisplayIndex + albumGridDisplayCount <
+      matchedReleases.length
+    ) {
+      setAlbumGridDisplayIndex(albumGridDisplayIndex + 1);
     }
   };
   const handleAlbumGridReverse = () => {
-    if (gridDisplayIndex > 0) {
-      setGridDisplayIndex(gridDisplayIndex - 1);
+    if (albumGridDisplayIndex > 0) {
+      setAlbumGridDisplayIndex(albumGridDisplayIndex - 1);
     }
   };
   const handleAlbumGridMore = () => {
-    console.log('gridDisplayCount = ' + gridDisplayCount);
-    console.log('matchedReleases.length = ' + matchedReleases.length);
-    if (gridDisplayCount < matchedReleases.length) {
-      console.log('displaying more...');
-      setGridDisplayCount(gridDisplayCount + 1);
+    if (albumGridDisplayCount < matchedReleases.length) {
+      setAlbumGridDisplayCount(albumGridDisplayCount + 1);
+    }
+  };
+
+  const handleTrackGridForward = () => {
+    if (trackGridDisplayIndex + trackGridDisplayCount < matchedTracks.length) {
+      setTrackGridDisplayIndex(trackGridDisplayIndex + 1);
+    }
+  };
+  const handleTrackGridReverse = () => {
+    if (trackGridDisplayIndex > 0) {
+      setTrackGridDisplayIndex(trackGridDisplayIndex - 1);
+    }
+  };
+  const handleTrackGridMore = () => {
+    if (trackGridDisplayCount < matchedReleases.length) {
+      setTrackGridDisplayCount(trackGridDisplayCount + 1);
     }
   };
 
@@ -357,12 +536,34 @@ export default function Home() {
             {matchedReleases.length > 0 ? (
               <ReleaseGrid
                 releases={matchedReleases.slice(
-                  gridDisplayIndex,
-                  gridDisplayIndex + gridDisplayCount
+                  albumGridDisplayIndex,
+                  albumGridDisplayIndex + albumGridDisplayCount
                 )}
-                albumGridForward={() => handleAlbumGridForward()}
-                albumGridReverse={() => handleAlbumGridReverse()}
-                albumGridMore={() => handleAlbumGridMore()}
+                forward={() => handleAlbumGridForward()}
+                reverse={() => handleAlbumGridReverse()}
+                more={() => handleAlbumGridMore()}
+                width={width}
+              />
+            ) : (
+              <Loader type="TailSpin" color="#999999" height={35} width={35} />
+            )}
+          </section>
+
+          <section className={classes.releaseSection}>
+            <div className={classes.releaseSection__headerWrapper}>
+              <h3 className={classes.releaseSection__header}>
+                From Tracks In Your Library
+              </h3>
+            </div>
+            {matchedTracks.length > 0 ? (
+              <ReleaseGrid
+                releases={matchedTracks.slice(
+                  trackGridDisplayIndex,
+                  trackGridDisplayIndex + trackGridDisplayCount
+                )}
+                forward={() => handleTrackGridForward()}
+                reverse={() => handleTrackGridReverse()}
+                more={() => handleTrackGridMore()}
                 width={width}
               />
             ) : (

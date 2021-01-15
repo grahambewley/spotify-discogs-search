@@ -5,8 +5,12 @@ const PlaylistGrid = ({ playlists }) => {
   return (
     <div className={classes.grid}>
       {playlists.map(playlist => (
-        <a className={classes.playlist__link} href={'/playlist/' + playlist.id}>
-          <div key={playlist.id} className={classes.playlist}>
+        <a
+          key={playlist.id}
+          className={classes.playlist__link}
+          href={'/playlist/' + playlist.id}
+        >
+          <div className={classes.playlist}>
             <div className={classes.playlist__coverWrapper}>
               <img
                 src={playlist.images[0].url}

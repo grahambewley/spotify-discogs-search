@@ -3,22 +3,16 @@ import classes from './ReleaseGrid.module.css';
 import ReleaseCover from '../ReleaseCover/ReleaseCover';
 import ReleaseDetails from '../ReleaseDetails/ReleaseDetails';
 
-const ReleaseGrid = ({
-  releases,
-  albumGridForward,
-  albumGridReverse,
-  albumGridMore,
-  width
-}) => {
+const ReleaseGrid = ({ releases, forward, reverse, more, width }) => {
   return (
     <>
       {width > 500 ? (
         <>
           <div className={classes.coverGridWrapper}>
-            <button className={classes.backButton} onClick={albumGridReverse}>
+            <button className={classes.backButton} onClick={reverse}>
               <span>Back</span>
             </button>
-            <button className={classes.nextButton} onClick={albumGridForward}>
+            <button className={classes.nextButton} onClick={forward}>
               <span>Next</span>
             </button>
             <div className={classes.grid}>
@@ -44,7 +38,7 @@ const ReleaseGrid = ({
               </div>
             ))}
           </div>
-          <button className={classes.moreButton} onClick={albumGridMore}>
+          <button className={classes.moreButton} onClick={more}>
             Show More
           </button>
         </>
