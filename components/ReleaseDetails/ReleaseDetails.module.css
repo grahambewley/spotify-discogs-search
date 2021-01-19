@@ -7,11 +7,13 @@
 }
 .releaseDetailIcon {
   width: 0.7rem;
+  height: 0.7rem;
   margin-right: 8px;
+  margin-top: 3px;
 }
 .releaseDetail {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   font-weight: 500;
   font-size: 0.8rem;
   text-transform: uppercase;
