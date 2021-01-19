@@ -251,7 +251,6 @@ export default function Home() {
   };
 
   const getInitialDiscogsReleasesFromTracks = async () => {
-    console.log('getting initial discogs releases from tracks...');
     let releaseArray = [];
     let i = userTracksSearchIndex;
 
@@ -260,17 +259,28 @@ export default function Home() {
       releaseArray.length <
       trackGridDisplayIndex + trackGridDisplayCount + 1
     ) {
+      // TODO
+      // If i reaches userTracks.length, then we need to load more Spotify albums
+
       const currentTrack = userTracks[i].track;
 
-      let res = await getDiscogsRelease(userTracks[i].track.album);
+      // If the current release array already includes this album, skip it
+      if (
+        releaseArray.findIndex(rel => {
+          return rel.spotifyAlbumName == userTracks[i].track.album.name;
+        }) === -1
+      ) {
+        let res = await getDiscogsRelease(userTracks[i].track.album);
 
-      console.log('Response from searching track album: ', res);
-      if (res) {
-        const newTrackMatch = res;
-        newTrackMatch.spotifyTrackName = currentTrack.name;
-        releaseArray = [...releaseArray, newTrackMatch];
+        if (res) {
+          const newTrackMatch = res;
+          newTrackMatch.spotifyTrackName = currentTrack.name;
+          releaseArray = [...releaseArray, newTrackMatch];
+        }
+        i++;
+      } else {
+        i++;
       }
-      i++;
     }
 
     //Then set the album search index to where we left off
@@ -334,7 +344,6 @@ export default function Home() {
     let foundMatch = false;
 
     const discogsGetter = async track => {
-      console.log('Discogs Gettr Got This: ', track);
       let res = await getDiscogsRelease(track.track.album);
       if (res) {
         let newMatch = res;
@@ -344,20 +353,40 @@ export default function Home() {
       }
     };
 
+    const trackAlbumIsDuplicate = track => {
+      return (
+        releaseArray.findIndex(rel => {
+          return rel.spotifyAlbumName == track.track.album.name;
+        }) > -1
+      );
+    };
+
     while (!foundMatch) {
       // If i reaches userAlbums.length, then we need to load more Spotify albums
       if (i == userTracks.length) {
         // If we've already pulled all Spotify albums, just return - no more albums to search
         if (allTracksLoaded) {
           return;
-        } else {
+        }
+        // Otherwise get more from spotify
+        else {
           trks = await getNextSpotifyUserTracks();
-          await discogsGetter(trks[i]);
-          i++;
+          // If track album is already in releaseArray, skip it
+          if (!trackAlbumIsDuplicate(trks[i])) {
+            await discogsGetter(trks[i]);
+            i++;
+          } else {
+            i++;
+          }
         }
       } else {
-        await discogsGetter(trks[i]);
-        i++;
+        // If track album is already in releaseArray, skip it
+        if (!trackAlbumIsDuplicate(trks[i])) {
+          await discogsGetter(trks[i]);
+          i++;
+        } else {
+          i++;
+        }
       }
     }
 
@@ -530,7 +559,7 @@ export default function Home() {
           <section className={classes.releaseSection}>
             <div className={classes.releaseSection__headerWrapper}>
               <h3 className={classes.releaseSection__header}>
-                Albums From Your Library
+                From Albums In Your Library
               </h3>
             </div>
             {matchedReleases.length > 0 ? (
