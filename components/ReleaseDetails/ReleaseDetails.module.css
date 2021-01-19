@@ -6,6 +6,7 @@
   margin-bottom: 6px;
 }
 .releaseDetailIcon {
+  flex-shrink: 0;
   width: 0.7rem;
   height: 0.7rem;
   margin-right: 8px;

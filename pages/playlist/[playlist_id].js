@@ -101,6 +101,8 @@ const PlaylistPage = () => {
       <div className={classes.container}>
         <main className={classes.main}>
           <h1>{playlistName}</h1>
+
+          <h4>[Playlist functionality coming soon]</h4>
         </main>
       </div>
     </>
