@@ -38,24 +38,3 @@
 .description {
   font-size: 1.5rem;
 }
-
-.releaseSection {
-  margin-bottom: 6rem;
-}
-.releaseSection__headerWrapper {
-  padding-bottom: 0.5rem;
-  margin-bottom: 1.5rem;
-  border-bottom: 1px solid #eee;
-}
-.releaseSection__header {
-  font-size: 1rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  font-weight: 500;
-}
-.releaseSection__subhead {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  font-weight: 100;
-}

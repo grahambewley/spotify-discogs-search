@@ -116,6 +116,11 @@ export default function Home() {
         }
       );
 
+      const url = `${process.env.NEXT_PUBLIC_REDIRECT_URL}api/getDiscogsRelease`;
+      const payload = {
+        params: params
+      };
+
       //If we get back one or more results from Discogs search, return the first (most relevant) one
       if (response.data.results.length > 0) {
         const topResult = response.data.results[0];
@@ -196,14 +201,14 @@ export default function Home() {
             getDiscogsRelease={getDiscogsRelease}
           />
 
-          <section className={classes.releaseSection}>
+          {/* <section className={classes.releaseSection}>
             <div className={classes.releaseSection__headerWrapper}>
               <h3 className={classes.releaseSection__header}>
                 Explore Your Playlists
               </h3>
             </div>
             {userPlaylists && <PlaylistGrid playlists={userPlaylists} />}
-          </section>
+          </section> */}
         </main>
 
         <footer className={classes.footer}>
