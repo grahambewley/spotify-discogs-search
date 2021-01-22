@@ -6,7 +6,12 @@ import axios from 'axios';
 
 const SPOTIFY_ALBUM_LOAD_LIMIT = 20;
 
-const AlbumMatch = ({ accessToken, gridDisplayCount, width }) => {
+const AlbumMatch = ({
+  accessToken,
+  gridDisplayCount,
+  width,
+  getDiscogsRelease
+}) => {
   const [userAlbums, setUserAlbums] = React.useState();
   // This is set to true when we determine we've pulled all of a user's Spotify albums
   const [allAlbumsLoaded, setAllAlbumsLoaded] = React.useState(false);
@@ -97,62 +102,6 @@ const AlbumMatch = ({ accessToken, gridDisplayCount, width }) => {
     setUserAlbumsSearchIndex(i);
     // Initialize our matched releases array
     setMatchedReleases(releaseArray);
-  };
-
-  const getDiscogsRelease = async album => {
-    let params = {
-      q: album.name,
-      type: 'release',
-      format: 'Vinyl'
-    };
-
-    // If album isn't by "various artists", add the artist's name to the query
-    if (album.artists[0].name.toLowerCase() != 'various artists') {
-      params.q = album.name + ' ' + album.artists[0].name;
-    }
-
-    try {
-      const response = await axios.get(
-        'https://api.discogs.com/database/search',
-        {
-          headers: {
-            Authorization: `Discogs key=${process.env.NEXT_PUBLIC_DISCOGS_KEY}, secret=${process.env.NEXT_PUBLIC_DISCOGS_SECRET}`
-          },
-          params
-        }
-      );
-
-      //If we get back one or more results from Discogs search, return the first (most relevant) one
-      if (response.data.results.length > 0) {
-        const topResult = response.data.results[0];
-
-        // If the Spotify release has multiple artists - stick them together in one string
-        let artistList = album.artists[0].name;
-        if (album.artists.length > 1) {
-          let artistList = '';
-          album.artists.forEach(artist => {
-            artistList = artistList + artist + ', ';
-          });
-          artistList = artistList.slice(0, -2);
-        }
-
-        // Create a match object to return out
-        const match = {
-          spotifyAlbumName: album.name,
-          spotifyArtist: artistList,
-          spotifyImageUrl: album.images[0].url,
-          releaseCountry: topResult.country,
-          releaseYear: topResult.year,
-          releaseUrl: 'https://www.discogs.com' + topResult.uri,
-          releaseId: topResult.id
-        };
-
-        console.log('Got discogs release: ', match.spotifyAlbumName);
-        return match;
-      }
-    } catch (error) {
-      console.log(error);
-    }
   };
 
   const loadNextDiscogsRelease = async () => {
